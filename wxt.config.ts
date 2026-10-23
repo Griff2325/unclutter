@@ -1,6 +1,15 @@
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "wxt";
 
 export default defineConfig({
+  hooks: {
+    "build:publicAssets": (_wxt, files) => {
+      files.push({
+        absoluteSrc: fileURLToPath(new URL("./LICENSE", import.meta.url)),
+        relativeDest: "LICENSE",
+      });
+    },
+  },
   manifest: ({ browser }) => ({
     name: "Unclutter",
     description: "Hide ads and promotions with reusable, AI-reviewed page-template rules.",

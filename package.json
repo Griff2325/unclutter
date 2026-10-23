@@ -5,7 +5,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/kitze/unclutter.git"
+    "url": "https://github.com/Griff2325/unclutter.git"
   },
   "type": "module",
   "scripts": {
@@ -18,7 +18,10 @@
     "format": "oxfmt .",
     "format:check": "oxfmt --check .",
     "test": "tsx --test tests/*.test.ts",
-    "check": "bun run typecheck && bun run lint && bun run format:check && bun run test"
+    "check": "bun run typecheck && bun run lint && bun run format:check && bun run test",
+    "build:safari": "wxt build -b safari --mv3",
+    "zip:safari": "wxt zip -b safari --mv3",
+    "safari:app": "bun run build:safari && node scripts/package-safari.mjs"
   },
   "dependencies": {
     "zod": "^4.3.6"

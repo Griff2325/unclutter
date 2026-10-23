@@ -1,8 +1,12 @@
 <!-- readme-sync:repo:start -->
+
 # unclutter
 
 WXT browser extension: Jev\-powered page clutter removal with reusable template rules\.
+
 <!-- readme-sync:repo:end -->
+
+**Safari fork:** [Build and install the macOS app](#safari-on-macos) with `bun run safari:app`. Based on [Kitze’s Unclutter](https://github.com/kitze/unclutter).
 
 <!-- readme-sync:header:start -->
 <p>
@@ -11,7 +15,6 @@ WXT browser extension: Jev\-powered page clutter removal with reusable template 
   <a href="https://kitze.io/?ref=kitze%2Funclutter">kitze.io</a> · <a href="https://x.com/thekitze?ref=kitze%2Funclutter">X</a> · <a href="https://youtube.com/kitze?ref=kitze%2Funclutter">YouTube</a>
 </p>
 <br clear="all">
-
 
 <h3>More projects by Kitze</h3>
 <table>
@@ -206,14 +209,14 @@ WXT browser extension: Jev\-powered page clutter removal with reusable template 
 
 # Unclutter
 
-WXT extension for Chrome / Chromium and Firefox. Jev classifies nonessential page elements through Vercel AI Gateway or TypeSafe AI directly; the extension stores and reapplies local hiding rules by page template.
+WXT extension for Chrome / Chromium, Firefox, and Safari on macOS. This fork adds Safari packaging to [Kitze’s Unclutter](https://github.com/kitze/unclutter). Jev classifies nonessential page elements through Vercel AI Gateway or TypeSafe AI directly; the extension stores and reapplies local hiding rules by page template.
 
 ## Install from source
 
 Requires [Bun](https://bun.sh) and Node.js 22.12 or newer.
 
 ```sh
-git clone https://github.com/kitze/unclutter.git
+git clone https://github.com/Griff2325/unclutter.git
 cd unclutter
 bun install --frozen-lockfile
 bun run build
@@ -228,7 +231,29 @@ bun run build
 
 After replacing unpacked builds, click **Reload** on the extension card and refresh website tabs. Existing keys/settings stay in place. V1 templates show **Update available**; **Re-analyze** once to include cookie dialogs, or automatic mode upgrades them once while preserving paused templates and keep-visible choices.
 
-For Firefox 140+, run `bun run build:firefox`, open `about:debugging#/runtime/this-firefox`, choose **Load Temporary Add-on**, and select `.output/firefox-mv2/manifest.json`. Temporary add-ons disappear on Firefox restart; permanent Firefox distribution requires Mozilla signing. Chrome/Edge/Brave can use the Chromium build. Safari packaging is not included.
+For Firefox 140+, run `bun run build:firefox`, open `about:debugging#/runtime/this-firefox`, choose **Load Temporary Add-on**, and select `.output/firefox-mv2/manifest.json`. Temporary add-ons disappear on Firefox restart; permanent Firefox distribution requires Mozilla signing. Chrome/Edge/Brave can use the Chromium build.
+
+### Safari on macOS
+
+Requires full [Xcode 27 or newer](https://developer.apple.com/xcode/) (including `safari-web-extension-packager`) with its command-line tools selected, in addition to Bun and Node. The local app build targets macOS 13 or newer, and its APIs require Safari 16 or newer. This build is tested with Xcode 27.1, Safari 26.6, and macOS 26.6; older versions have not been verified. Command Line Tools alone cannot package a Safari extension.
+
+After installing dependencies above, build the extension and its containing app with one command:
+
+```sh
+bun run safari:app
+open .output/safari-app/Unclutter.app
+```
+
+1. Keep the app in a stable location (you can copy it to `/Applications`), then open it once so Safari discovers its extension.
+2. This is a locally signed development build. In **Safari → Settings → Advanced**, enable **Show features for web developers**. Open **Safari → Settings → Developer** and enable **Allow unsigned extensions**. Safari resets this setting whenever it quits; enable it again after restarting Safari.
+3. In **Safari → Settings → Extensions**, enable **Unclutter** and allow it on the websites you want to clean. Use **Always Allow on Every Website** only if you want saved rules and automatic mode to work across all sites. Safari’s per-site access controls still apply.
+4. Refresh existing website tabs, open Unclutter’s toolbar popup, and configure a provider and API key under **Connection**. Manual mode is the default; analysis requires your own provider credits. Saved rules work without further requests.
+
+Rebuild with the same command, reopen the app, and refresh website tabs after updates. Keep the same app bundle identifier to retain local extension settings. Safari badges show status text; Safari controls their color.
+
+`bun run build:safari` produces only `.output/safari-mv3/`; `bun run zip:safari` produces its web-extension ZIP. Neither is directly installable by double-clicking or dragging into Safari. `bun run safari:app` regenerates the Xcode project under `.output/safari-xcode/` and builds `.output/safari-app/Unclutter.app`; generated files are ignored by Git. The packager verifies the app signature and extension’s outgoing-network entitlement. No API key or browser security setting is changed during the build.
+
+For a trusted permanent install without the unsigned-extension setting, configure both generated Xcode targets with your Apple Developer team and distribution signing, then distribute through the App Store or an appropriately signed and notarized macOS app. The local build is ad-hoc signed and is not a notarized release. Follow Apple’s [packaging](https://developer.apple.com/documentation/safariservices/packaging-a-web-extension-for-safari) and [running](https://developer.apple.com/documentation/safariservices/running-your-safari-web-extension) guides. Regeneration overwrites Xcode-only edits; keep release-signing changes outside generated build output.
 
 Bring your own [Vercel AI Gateway](https://vercel.com/ai-gateway) key or [TypeSafe AI key](https://console.typesafe.ai/settings/keys) (the same kind used as `JEV_KEY` / `TYPESAFE_API_KEY`). Configure it in the extension popup, not in source code or build-time environment variables. No key or shared account is bundled.
 
@@ -278,20 +303,20 @@ bun install
 bun run check
 bun run build
 bun run build:firefox
+bun run build:safari
 ```
 
 Use `bun run dev` for WXT development mode. No background server is needed for unpacked production builds.
 
 The normal checks use synthetic fixtures and need no API key. Optional live smoke test: set `JEV_KEY` or `TYPESAFE_API_KEY` for TypeSafe AI, **or** `AI_GATEWAY_API_KEY` for Gateway, then run `bun scripts/smoke-jev.ts`. Do not set both provider families; conflicting direct-key aliases are rejected too. Never pass a key as a command-line argument. The smoke sends synthetic inputs only and incurs a small API charge. Never commit `.env` files, API keys, browser profiles, or real browsing data.
 
-Outputs: `.output/chrome-mv3/` and `.output/firefox-mv2/`. `bun run zip` packages Chromium.
+Outputs: `.output/chrome-mv3/`, `.output/firefox-mv2/`, and `.output/safari-mv3/`. `bun run zip` packages Chromium; `bun run zip:safari` packages Safari’s web resources. On macOS, `bun run safari:app` builds the containing app.
 
 Architecture: `lib/page-context.ts` identifies templates, `lib/dom.ts` extracts candidates and applies reversible rules, `lib/jev.ts` implements Gateway evaluation-model v4 and TypeSafe System One with shared choice validation, `entrypoints/background.ts` owns credentials/cache/actions, `entrypoints/cleaner.content.ts` handles page lifecycle, and `entrypoints/popup/` provides controls. Settings and profiles use independent storage keys to avoid unrelated-tab write loss.
 
 ## License
 
 [MIT](LICENSE).
-
 
 <!-- readme-sync:footer:start -->
 <hr>
