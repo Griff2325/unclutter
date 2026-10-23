@@ -141,6 +141,68 @@ test("ad units survive the candidate cap without hiding recipe content", () => {
     assert.equal((d.getElementById(id) as HTMLElement).style.display, "");
 });
 
+test("ad bootstrap code is not mistaken for protected editorial text", () => {
+  const code = "private-ad-bootstrap-value sign in to continue ".repeat(250);
+  const d = doc(`<main><article><h1>Recipe</h1><p>${"real article ".repeat(200)}</p></article>
+    <div id="ad-unit-lazy">Advertisement<script>${code}</script><style>/*${code}*/</style><noscript>${code}</noscript><template>${code}</template><iframe></iframe></div>
+    <div id="ad-unit-paragraph"><p>Advertisement<script>${code}</script></p></div>
+    <div id="ad-unit-long">${"editorial text ".repeat(200)}</div>
+    <div id="ad-unit-security">Sign in to continue<script>${code}</script></div>
+    <div id="ad-unit-form"><form><input /></form><script>${code}</script></div></main>`);
+  const candidates = collectCandidates(d);
+  assert.deepEqual(
+    candidates.map((c) => c.selector),
+    ["div#ad-unit-lazy", "div#ad-unit-paragraph"],
+  );
+  assert.ok(!JSON.stringify(candidates).includes("private-ad-bootstrap-value"));
+  const cleaner = createCleaner(d);
+  assert.equal(
+    cleaner.apply(
+      candidates.map((c) => ({ selector: c.selector, category: "ad" as const, enabled: true })),
+    ),
+    2,
+  );
+  assert.equal((d.querySelector("article") as HTMLElement).style.display, "");
+  cleaner.restore();
+  assert.doesNotMatch(d.documentElement.outerHTML, /data-unclutter-/);
+});
+
+test("ad-layer rules hide the active JW ad player and restore editorial playback", () => {
+  const d = doc(`<main><article><h1>Recipe</h1>
+    <div id="video-wrapper"><div class="jwplayer jw-flag-ads" style="display: grid">
+      <div class="jw-media"><video></video></div>
+      <div id="primary-video-ad" class="jw-ads-view"><iframe></iframe></div>
+      <div class="jw-controls"><button>Play</button><span>This ad will end in 17</span></div>
+    </div></div></article></main>`);
+  const player = d.querySelector(".jwplayer") as HTMLElement;
+  const ad = d.getElementById("primary-video-ad") as HTMLElement;
+  const cleaner = createCleaner(d);
+  const rule = { selector: "div#primary-video-ad", category: "ad" as const, enabled: true };
+  assert.equal(cleaner.apply([rule]), 1);
+  assert.equal(player.style.display, "none");
+  player.classList.remove("jw-flag-ads");
+  cleaner.apply([rule]);
+  assert.equal(player.style.display, "grid");
+  assert.equal(ad.style.display, "none");
+  player.classList.add("jw-flag-ads");
+  cleaner.apply([{ ...rule, category: "social" }]);
+  assert.equal(player.style.display, "grid");
+  cleaner.apply([{ ...rule, enabled: false }]);
+  assert.equal(ad.style.display, "");
+  const form = d.createElement("form");
+  form.innerHTML = "<input />";
+  player.append(form);
+  cleaner.apply([rule]);
+  assert.equal(player.style.display, "grid");
+  form.remove();
+  cleaner.apply([rule]);
+  assert.equal(player.style.display, "none");
+  cleaner.restore();
+  assert.equal(player.style.display, "grid");
+  assert.equal(ad.style.display, "");
+  assert.doesNotMatch(d.documentElement.outerHTML, /data-unclutter-/);
+});
+
 test("Jev requests use bounded typed choices, no full URL or selector instructions", () => {
   const d = article();
   const candidates = collectCandidates(d);

@@ -39,13 +39,16 @@ export function isProtected(el: Element): boolean {
   if (el.matches(selector) || el.querySelector(selector)) return true;
   if (el.closest('[contenteditable="true"]') || (!cookie && el.closest("form"))) return true;
   if (/paywall|sign[-_ ]?in|log[-_ ]?in|captcha|checkout|payment/i.test(identity(el))) return true;
-  const text = (el.textContent ?? "").replace(/\s+/g, " ").trim();
+  // Ad bootstrap code is not editorial content or a visible security prompt.
+  const copy = el.cloneNode(true) as Element;
+  copy.querySelectorAll("script,style,noscript,template").forEach((node) => node.remove());
+  const text = (copy.textContent ?? "").replace(/\s+/g, " ").trim();
   if (/sign in to continue|subscribe to (?:read|continue)|verify you are human/i.test(text))
     return true;
   if (cookie) return text.length > 20_000;
   return (
     text.length > 2000 ||
-    [...el.querySelectorAll("p")].some((p) => (p.textContent?.length ?? 0) > 600)
+    [...copy.querySelectorAll("p")].some((p) => (p.textContent?.length ?? 0) > 600)
   );
 }
 
@@ -229,7 +232,17 @@ export function createCleaner(doc: Document) {
   };
   const apply = (rules: Rule[]) => {
     const roots = [
-      ...new Set(rules.filter((r) => r.enabled).flatMap((r) => matchingElements(doc, r.selector))),
+      ...new Set(
+        rules
+          .filter((r) => r.enabled)
+          .flatMap((rule) =>
+            matchingElements(doc, rule.selector).map((el) => {
+              // Hide the active ad's shell too; restore the player for editorial video.
+              const player = rule.category === "ad" ? el.closest(".jwplayer.jw-flag-ads") : null;
+              return player && !isProtected(player) ? player : el;
+            }),
+          ),
+      ),
     ];
     const next = collapseTargets(roots);
     const contains = (el: Element) =>
