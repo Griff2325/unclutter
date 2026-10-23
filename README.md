@@ -241,15 +241,14 @@ After installing dependencies above, build the extension and its containing app 
 
 ```sh
 bun run safari:app
-open .output/safari-app/Unclutter.app
 ```
 
-1. Keep the app in a stable location (you can copy it to `/Applications`), then open it once so Safari discovers its extension.
+1. Move `.output/safari-app/Unclutter.app` to a stable location such as `/Applications`, then open it once so Safari discovers its extension. Keep only one installed app copy: multiple copies can create duplicate Safari entries with separate website permissions.
 2. This is a locally signed development build. In **Safari → Settings → Advanced**, enable **Show features for web developers**. Open **Safari → Settings → Developer** and enable **Allow unsigned extensions**. Safari resets this setting whenever it quits; enable it again after restarting Safari.
 3. In **Safari → Settings → Extensions**, enable **Unclutter** and allow it on the websites you want to clean. Use **Always Allow on Every Website** only if you want saved rules and automatic mode to work across all sites. Safari’s per-site access controls still apply.
 4. Refresh existing website tabs, open Unclutter’s toolbar popup, and configure a provider and API key under **Connection**. Manual mode is the default; analysis requires your own provider credits. Saved rules work without further requests.
 
-Rebuild with the same command, reopen the app, and refresh website tabs after updates. Keep the same app bundle identifier to retain local extension settings. Safari badges show status text; Safari controls their color.
+Rebuild with the same command, move the new app into the same installed location to replace the previous app, reopen it, and refresh website tabs. Keep the same installed location and app bundle identifier to retain local extension settings. Safari badges show status text; Safari controls their color.
 
 `bun run build:safari` produces only `.output/safari-mv3/`; `bun run zip:safari` produces its web-extension ZIP. Neither is directly installable by double-clicking or dragging into Safari. `bun run safari:app` regenerates the Xcode project under `.output/safari-xcode/` and builds `.output/safari-app/Unclutter.app`; generated files are ignored by Git. The packager verifies the app signature and extension’s outgoing-network entitlement. No API key or browser security setting is changed during the build.
 
