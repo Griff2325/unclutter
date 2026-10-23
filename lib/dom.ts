@@ -6,6 +6,7 @@ const sensitive =
 const protectedSelector = `${structural},header,h1,form,input,textarea,select,[contenteditable="true"],dialog`;
 const clutter =
   /(?:^|[-_\s])(?:ad|ads|advert|advertisement|advertising|sponsor|sponsored|promo|promotion|banner|newsletter|subscribe|subscription|upsell|popup|modal|overlay|share|social|recommendations|related|cookie|consent)(?:$|[-_\s])/i;
+const adUnit = /(?:^|[-_\s])ad-?unit(?:$|[-_\s])/i;
 // Stable vendor prefixes survive per-session numeric IDs. BBC's public ad
 // bootstrap uses Sourcepoint (cdn.privacy-mgmt.com) and ngasCookiePrompt.
 const consentPrefixes = ["sp_message_container_", "sp_message_iframe_"];
@@ -93,9 +94,18 @@ export function collectCandidates(doc: Document): Candidate[] {
       '[role="dialog"],[aria-modal="true"],[id^="sp_message_"],[id*="cookie" i],[id*="consent" i],#onetrust-banner-sdk,#didomi-host',
     ),
   ].slice(0, 100);
+  // Explicit ad units must reach Jev before nested share/promo widgets fill its budget.
+  const adUnits = [
+    ...doc.querySelectorAll(
+      '[id*="adunit" i],[class*="adunit" i],[id*="ad-unit" i],[class*="ad-unit" i]',
+    ),
+  ]
+    .filter((el) => el.matches("aside,section,div,iframe") && adUnit.test(identity(el)))
+    .slice(0, 100);
   const elements = [
     ...new Set([
       ...priority,
+      ...adUnits,
       ...[...doc.querySelectorAll('aside,section,div,[role="dialog"],iframe')].slice(0, 6000),
     ]),
   ];
@@ -108,6 +118,7 @@ export function collectCandidates(doc: Document): Candidate[] {
     const position = doc.defaultView?.getComputedStyle(el).position ?? "static";
     if (
       !cookie &&
+      !adUnit.test(signals) &&
       !clutter.test(signals) &&
       !el.matches('aside,[role="dialog"],iframe') &&
       !["fixed", "sticky"].includes(position)

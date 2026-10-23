@@ -110,6 +110,37 @@ test("hiding is reversible, catches late inserts and refuses newly protected mat
   assert.doesNotMatch(d.documentElement.outerHTML, /data-unclutter-/);
 });
 
+test("ad units survive the candidate cap without hiding recipe content", () => {
+  const early = Array.from(
+    { length: 65 },
+    (_, i) => `<div id="social-widget-${i}">Share</div>`,
+  ).join("");
+  const ids = Array.from({ length: 8 }, (_, i) => `mm-ads-sc-sticky-square-ad_${i + 1}-0`);
+  const slots = ids
+    .map((id) => `<div id="${id}" class="comp mm-ads-gpt-adunit">Advertisement</div>`)
+    .join("");
+  const d = doc(
+    `${early}<script id="ad-unit-settings" type="application/json">{"account":"private-user-value"}</script><style id="ad-unit-styles">body { color: red; }</style>${slots}<div id="footer-slot" class="gpt-ad-unit">Advertisement</div><main><article><h1>Lasagna</h1><p>Keep the recipe.</p></article><section id="recipe-content" class="mm-ads-gpt-adunit"><form><input /></form></section></main>`,
+  );
+  const candidates = collectCandidates(d);
+  const selectors = candidates.map((candidate) => candidate.selector);
+  assert.equal(candidates.length, 60);
+  for (const id of [...ids, "footer-slot"]) assert.ok(selectors.includes(`div#${id}`), id);
+  assert.ok(!selectors.some((selector) => selector.includes("recipe-content")));
+  assert.ok(!candidates.some((candidate) => ["script", "style"].includes(candidate.tag)));
+  assert.ok(!JSON.stringify(candidates).includes("private-user-value"));
+  const rules = candidates
+    .filter((candidate) => [...ids, "footer-slot"].some((id) => candidate.selector === `div#${id}`))
+    .map((candidate) => ({ selector: candidate.selector, category: "ad" as const, enabled: true }));
+  const cleaner = createCleaner(d);
+  assert.equal(cleaner.apply(rules), 9);
+  assert.equal(d.querySelector("article")?.textContent, "LasagnaKeep the recipe.");
+  assert.ok(!d.querySelector("#recipe-content")?.hasAttribute("style"));
+  cleaner.restore();
+  for (const id of [...ids, "footer-slot"])
+    assert.equal((d.getElementById(id) as HTMLElement).style.display, "");
+});
+
 test("Jev requests use bounded typed choices, no full URL or selector instructions", () => {
   const d = article();
   const candidates = collectCandidates(d);
