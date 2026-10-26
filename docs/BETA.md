@@ -25,7 +25,7 @@ Verified October 26, 2026:
 - Native package built with Xcode using the existing Apple Development identity and stable team/bundle IDs. Both app and extension are version 0.4.0 with Intel and Apple silicon architectures, valid signatures and packaged beta pages/license. Archived separately as `Unclutter-0.4.0-beta.1-development-macOS-universal.zip`; this is not notarized or suitable for public distribution. The existing installed app was preserved; the generated duplicate was unregistered and removed.
 - Missing public-release credentials fail preflight before build/upload. An actual signature inspection caught and fixed insufficient `codesign` verbosity so the Developer ID and timestamp gate can read the required fields.
 - GitHub private vulnerability reporting was enabled and verified through the repository API; `SECURITY.md` links to the private report form.
-- Independent GPT-6-luna review found no blocking issue after the fixes. GitHub CI execution will be checked after pushing; adding a workflow alone does not establish a green remote run.
+- Independent GPT-6-luna review found no blocking issue after the fixes. [GitHub CI passed for implementation commit ce2b070](https://github.com/Griff2325/unclutter/actions/runs/40413217552): frozen dependency installation, all checks/tests and the Safari production build.
 
 Only an Apple Development identity was present; no Developer ID Application identity was found. No Apple submission, public binary, release tag, paid provider request or broad live website test was performed during this preparation.
 
