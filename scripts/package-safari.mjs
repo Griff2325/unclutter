@@ -7,11 +7,14 @@ import { fileURLToPath } from "node:url";
 assert.equal(process.platform, "darwin", "Safari app packaging requires macOS and full Xcode.");
 const root = fileURLToPath(new URL("../", import.meta.url));
 const extension = join(root, ".output/safari-mv3");
-const project = join(root, ".output/safari-xcode/Unclutter");
-const products = join(root, ".output/safari-app");
+const output = process.env.SAFARI_OUTPUT_ROOT || join(root, ".output");
+const project = join(output, "safari-xcode/Unclutter");
+const products = join(output, "safari-app");
+const release = process.env.SAFARI_RELEASE === "1";
 const signingIdentity = process.env.SAFARI_SIGNING_IDENTITY?.trim() || "-";
 const team = process.env.SAFARI_DEVELOPMENT_TEAM?.trim() || "";
 const signed = signingIdentity !== "-";
+if (release) assert.match(signingIdentity, /^[A-Fa-f0-9]{40}$/, "Release requires a Developer ID Application certificate fingerprint.");
 assert.ok(
   signed ? /^[A-Z0-9]{10}$/.test(team) : !team,
   "Set both SAFARI_SIGNING_IDENTITY and a 10-character SAFARI_DEVELOPMENT_TEAM, or neither.",
@@ -37,7 +40,7 @@ run("xcrun", [
   "safari-web-extension-packager",
   extension,
   "--project-location",
-  join(root, ".output/safari-xcode"),
+  join(output, "safari-xcode"),
   "--app-name",
   "Unclutter",
   "--bundle-identifier",
@@ -60,11 +63,13 @@ writeFileSync(
   html.replace('width="128" height="128"', 'width="48" height="48"').replace(
     "</body>",
     signed
-      ? `<p>Signed development build. Enable Unclutter in Safari Settings → Extensions and allow website access. Refresh existing website tabs.</p>
+      ? `<p>Enable Unclutter in Safari Settings → Extensions and allow access to the websites you want to clean. Refresh open tabs.</p>
+<p>Open the extension popup and add your own Vercel AI Gateway or TypeSafe AI API key under Connection. Analysis sends page snippets to your chosen provider and may incur charges; review the privacy information in the popup before proceeding.</p>
 </body>`
       : `<p>Local development build: in Safari Settings → Advanced, enable “Show features for web developers”.
 Then enable Safari Settings → Developer → Allow unsigned extensions. Enable Unclutter in Safari Settings → Extensions and allow website access.</p>
 <p>Safari resets the unsigned-extension setting when it quits. Refresh website tabs after enabling Unclutter.</p>
+<p>Open the extension popup and add your own Vercel AI Gateway or TypeSafe AI API key under Connection. Analysis sends page snippets to your chosen provider and may incur charges; review the privacy information in the popup before proceeding.</p>
 </body>`,
   ),
 );
@@ -86,13 +91,14 @@ run("xcodebuild", [
   "-destination",
   "generic/platform=macOS",
   "-derivedDataPath",
-  join(root, ".output/safari-derived-data"),
+  join(output, "safari-derived-data"),
   `CONFIGURATION_BUILD_DIR=${products}`,
   "MACOSX_DEPLOYMENT_TARGET=13.0",
   "CODE_SIGN_STYLE=Manual",
   `CODE_SIGN_IDENTITY=${signingIdentity}`,
   `DEVELOPMENT_TEAM=${team}`,
   "ENABLE_OUTGOING_NETWORK_CONNECTIONS=YES",
+  ...(release ? ["ARCHS=arm64 x86_64", "ONLY_ACTIVE_ARCH=NO", "ENABLE_HARDENED_RUNTIME=YES", `MARKETING_VERSION=${manifest.version}`] : []),
   "build",
 ]);
 const app = join(products, "Unclutter.app");
@@ -108,6 +114,7 @@ if (signed) {
       "The app and extension must both be signed by the requested developer team.",
     );
     assert.ok(!signature.stderr.includes("Signature=adhoc"), "Expected certificate signing.");
+    if (release) assert.match(signature.stderr, /^Authority=Developer ID Application:/m, "Release requires a Developer ID Application signature.");
   }
 }
 
@@ -120,6 +127,15 @@ assert.match(
   /<key>com\.apple\.security\.network\.client<\/key>\s*<true\s*\/>/,
   "Extension requires outgoing network access.",
 );
+if (release) {
+  for (const bundle of [app, appex]) {
+    const executable = spawnSync("plutil", ["-extract", "CFBundleExecutable", "raw", "-o", "-", join(bundle, "Contents/Info.plist")], { encoding: "utf8" });
+    assert.equal(executable.status, 0, "Cannot inspect bundle executable.");
+    const architectures = spawnSync("lipo", ["-archs", join(bundle, "Contents/MacOS", executable.stdout.trim())], { encoding: "utf8" });
+    assert.equal(architectures.status, 0, "Cannot inspect binary architectures.");
+    assert.deepEqual(new Set(architectures.stdout.trim().split(/\s+/)), new Set(["arm64", "x86_64"]), "Release must be universal.");
+  }
+}
 console.log(
   `\nBuilt ${app}\n${signed ? "Signed with your developer identity." : "Ad-hoc signed: Safari's unsigned-extension setting resets when it quits."} Open the app for Safari setup instructions. This is not a notarized release.`,
 );
