@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="/info.css" />
+    <title>Try reversible cleanup · Unclutter for Safari</title>
+  </head>
+  <body>
+    <header>
+      <nav>
+        <a href="/help.html">Setup &amp; help</a><a href="/privacy.html">Privacy</a
+        ><a href="/demo.html">Local demo</a>
+      </nav>
+      <h1>Try reversible cleanup</h1>
+      <p class="muted">Unclutter for Safari · Mac beta · Bring your own API key</p>
+    </header>
+    <main>
+      <p>
+        This sample uses fixed local rules to demonstrate hiding and restoring elements. It makes no
+        model request, uses no key, and does not demonstrate AI classification accuracy.
+      </p>
+      <div class="demo-actions">
+        <button id="clean">Apply sample cleanup</button
+        ><button id="restore" class="secondary" disabled>Restore</button>
+      </div>
+      <p id="result" role="status">Sample content is unchanged.</p>
+      <div class="sample">
+        <article>
+          <h2>A short recipe stays readable</h2>
+          <p>
+            Toast a slice of bread, add sliced tomatoes and a little olive oil, then finish with
+            salt and basil.
+          </p>
+          <p id="keep">The recipe and useful content remain on the page.</p>
+          <aside class="demo-ad">Advertisement · Sample sidebar promotion</aside>
+          <div class="demo-newsletter">Newsletter invitation · Sample signup promotion</div>
+        </article>
+      </div>
+    </main>
+    <script type="module" src="./main.ts"></script>
+    <footer>
+      Independent Safari adaptation of
+      <a href="https://github.com/kitze/unclutter" rel="noopener">Kitze’s Unclutter</a>. MIT
+      licensed; working beta name.
+      <a href="https://github.com/Griff2325/unclutter/issues" rel="noopener">Report a problem</a>
+      without including keys or private browsing data.
+    </footer>
+  </body>
+</html>

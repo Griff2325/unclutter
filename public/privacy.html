@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="/info.css" />
+    <title>Privacy and provider permission · Unclutter for Safari</title>
+  </head>
+  <body>
+    <header>
+      <nav>
+        <a href="/help.html">Setup &amp; help</a><a href="/privacy.html">Privacy</a
+        ><a href="/demo.html">Local demo</a>
+      </nav>
+      <h1>Privacy and provider permission</h1>
+      <p class="muted">Unclutter for Safari · Mac beta · Bring your own API key</p>
+    </header>
+    <main>
+      <p>
+        Effective October 26, 2026. This policy describes this independent, client-only Safari fork.
+        There is no project-operated backend, advertising analytics, or telemetry in the extension.
+      </p>
+      <h2>Data on your Mac</h2>
+      <p>
+        The extension stores your API key, provider selection, consent, paused website origins, and
+        cached template rules in Safari extension storage on this device. It does not sync that
+        storage. The key is not separately encrypted by the extension and is not stored in Keychain.
+        Protect access to your Mac and revoke exposed keys through your provider.
+      </p>
+      <h2>When data leaves the browser</h2>
+      <p>
+        No model request is made until you save a key and explicitly allow the selected provider to
+        process snippets. In Manual mode, Analyze / Re-analyze sends a request. On page visit
+        additionally authorizes requests for new eligible page templates in visible tabs. Each
+        request can incur charges to your provider account. Saved templates are reused locally.
+      </p>
+      <p>
+        Requests contain the page kind and up to 60 element descriptions: tag, short structural
+        signals and text, position, and match count. We skip main content containers and form
+        controls, redact email-like and long numeric strings, and omit full page URLs, page titles,
+        cookies and raw HTML from the model request. This does not guarantee anonymity: remaining
+        snippets can contain names, private text or other personal information. Do not analyze
+        sensitive pages.
+      </p>
+      <h2>Who receives requests</h2>
+      <p>
+        TypeSafe AI receives requests directly at <code>api.typesafe.ai</code> when selected. Vercel
+        AI Gateway receives requests at <code>ai-gateway.vercel.sh</code> and routes Jev evaluation
+        to TypeSafe when Gateway is selected. The selected service receives your API credential for
+        authentication and normal connection metadata such as your IP address. The project developer
+        does not receive these requests or your key.
+      </p>
+      <p>
+        Provider handling, retention, deletion, and billing are governed by your provider account
+        and agreements. Review
+        <a href="https://typesafe.ai/legal/privacy-policy" rel="noopener"
+          >TypeSafe’s privacy policy</a
+        >,
+        <a href="https://vercel.com/legal/privacy-policy" rel="noopener">Vercel’s privacy policy</a>
+        and your service terms. We cannot promise provider-side zero retention or delete data
+        already sent to them.
+      </p>
+      <h2>Permission, deletion and revocation</h2>
+      <p>
+        Uncheck provider permission in Connection to stop future requests and return to Manual mode.
+        This cannot recall an in-flight request or delete provider records. Pause this website stops
+        both analysis and cached cleanup on that exact origin. Safari’s per-website access controls
+        can also revoke the extension’s access.
+      </p>
+      <p>
+        Remove saved key deletes the local API key without deleting cached rules. Forget this page
+        type deletes that template’s local rules. To revoke the credential itself or request
+        deletion of provider-side data, use the provider’s account controls. Cached rules and
+        settings remain local until removed; uninstalling the containing app alone may not clear
+        Safari website/extension data. Use Safari’s data-management controls to remove any remaining
+        stored extension data.
+      </p>
+      <h2>Support and changes</h2>
+      <p>
+        GitHub issue reports are public and subject to GitHub’s privacy policy. Avoid keys, private
+        URLs and personal screenshots. Report privacy concerns through the repository’s
+        <a href="https://github.com/Griff2325/unclutter/security/advisories/new" rel="noopener"
+          >private security-report form</a
+        >. Material changes to destinations or sharing will require updated disclosure and
+        permission before requests are allowed.
+      </p>
+    </main>
+    <footer>
+      Independent Safari adaptation of
+      <a href="https://github.com/kitze/unclutter" rel="noopener">Kitze’s Unclutter</a>. MIT
+      licensed; working beta name.
+      <a href="https://github.com/Griff2325/unclutter/issues" rel="noopener">Report a problem</a>
+      without including keys or private browsing data.
+    </footer>
+  </body>
+</html>

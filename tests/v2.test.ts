@@ -92,12 +92,15 @@ test("manual default, disabled mode/key/profile and persisted attempts block aut
     enabled: true,
     apiKey: "synthetic-test-key",
     provider: "vercel",
+    consented: true,
+    excludedOrigins: [],
   };
   assert.equal(shouldAutoAnalyze(settings, null, false), true);
   assert.equal(shouldAutoAnalyze({ ...settings, mode: "manual" }, null, false), false);
   assert.equal(shouldAutoAnalyze({ ...settings, enabled: false }, null, false), false);
   assert.equal(shouldAutoAnalyze({ ...settings, apiKey: "" }, null, false), false);
   assert.equal(shouldAutoAnalyze(settings, null, true), false);
+  assert.equal(shouldAutoAnalyze({ ...settings, consented: false }, null, false), false);
   const old = profileSchema.parse({
     key: "test",
     origin: "https://example.com",

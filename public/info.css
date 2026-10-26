@@ -1,0 +1,139 @@
+@charset "UTF-8";
+:root {
+  color-scheme: light dark;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #202824;
+  background: #f6f7f3;
+  line-height: 1.65;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 48px 24px 70px;
+}
+header {
+  border-bottom: 1px solid #dce3d8;
+  margin-bottom: 30px;
+  padding-bottom: 24px;
+}
+nav {
+  display: flex;
+  gap: 20px;
+  font-size: 13px;
+  flex-wrap: wrap;
+}
+h1 {
+  font-size: clamp(28px, 5vw, 40px);
+  line-height: 1.15;
+  font-weight: 650;
+  letter-spacing: -1.4px;
+  margin: 18px 0 12px;
+}
+h2 {
+  margin-top: 30px;
+  font-size: 19px;
+  letter-spacing: -0.3px;
+}
+p,
+li {
+  font-size: 15px;
+}
+a {
+  color: #206c53;
+  text-underline-offset: 3px;
+}
+:focus-visible {
+  outline: 2px solid #187b61;
+  outline-offset: 4px;
+}
+li {
+  margin: 10px 0;
+}
+.muted {
+  color: #687363;
+}
+.note {
+  border: 1px solid #dce3d8;
+  padding: 14px 18px;
+  border-radius: 12px;
+}
+code {
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+button {
+  font: inherit;
+  border: 1px solid #206c53;
+  background: #206c53;
+  color: white;
+  border-radius: 8px;
+  padding: 9px 15px;
+  cursor: pointer;
+}
+button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.secondary {
+  background: transparent;
+  color: #206c53;
+}
+footer {
+  margin-top: 38px;
+  border-top: 1px solid #dce3d8;
+  padding-top: 18px;
+  font-size: 12px;
+}
+.sample {
+  background: #fff;
+  border: 1px solid #dce3d8;
+  border-radius: 12px;
+  padding: 22px;
+  margin-top: 20px;
+}
+.sample h2 {
+  margin-top: 0;
+}
+.demo-ad,
+.demo-newsletter {
+  background: #ecefe7;
+  border: 1px dashed #9aa791;
+  padding: 16px;
+  border-radius: 8px;
+  margin: 14px 0;
+}
+.demo-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    background: #191e1a;
+    color: #e0e6db;
+  }
+  header,
+  footer,
+  .note,
+  .sample {
+    border-color: #354032;
+  }
+  .muted {
+    color: #acb6a5;
+  }
+  a,
+  .secondary {
+    color: #90d5ae;
+  }
+  .sample {
+    background: #222a23;
+  }
+  .demo-ad,
+  .demo-newsletter {
+    background: #30392c;
+    border-color: #63765a;
+  }
+}

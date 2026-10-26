@@ -65,6 +65,8 @@ export type Settings = {
   apiKey: string;
   provider: Provider;
   mode: "manual" | "auto";
+  consented: boolean;
+  excludedOrigins: string[];
 };
 export function shouldAutoAnalyze(
   settings: Settings,
@@ -75,6 +77,7 @@ export function shouldAutoAnalyze(
     settings.enabled &&
     settings.mode === "auto" &&
     !!settings.apiKey &&
+    settings.consented &&
     !attempted &&
     (!profile || (profile.enabled && profile.analysisVersion < ANALYSIS_VERSION))
   );

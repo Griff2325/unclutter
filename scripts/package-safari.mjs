@@ -121,7 +121,7 @@ assert.ok(existsSync(appex), "Build did not produce the Safari extension app.");
 run("codesign", ["--verify", "--deep", "--strict", app]);
 if (signed) {
   for (const bundle of [app, appex]) {
-    const signature = spawnSync("codesign", ["-dv", bundle], { encoding: "utf8" });
+    const signature = spawnSync("codesign", ["-dvvv", bundle], { encoding: "utf8" });
     assert.equal(signature.status, 0, "Cannot inspect signing identity.");
     assert.ok(
       signature.stderr.split("\n").includes(`TeamIdentifier=${team}`),

@@ -3,19 +3,26 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Unclutter</title>
+    <title>Unclutter for Safari</title>
   </head>
   <body>
     <header>
       <div class="brand">
         <img src="/icon/32.png" width="28" height="28" alt="" />
-        <h1>Unclutter</h1>
+        <div>
+          <h1>Unclutter</h1>
+          <span class="edition">Safari beta · Bring your own key</span>
+        </div>
       </div>
       <label class="switch" title="Enable everywhere"
         ><input id="global" type="checkbox" aria-label="Enable Unclutter everywhere" /><span></span
       ></label>
     </header>
     <main>
+      <p id="setup" class="setup-note">
+        Start in <strong>Connection</strong>: choose a provider, save your own key, and allow
+        analysis. You pay the provider directly.
+      </p>
       <div class="mode-row">
         <label for="analysis-mode">Analysis</label
         ><select id="analysis-mode">
@@ -45,6 +52,10 @@
           form values are excluded; snippets may still contain personal data.
         </p>
       </section>
+      <label id="site-control" class="check-row" hidden
+        ><input id="site-paused" type="checkbox" />Pause this website
+        <span class="muted">No cleanup or analysis</span></label
+      >
       <p id="error" role="alert" hidden></p>
       <p id="notice" role="status" hidden></p>
       <details id="rules-section" hidden>
@@ -60,6 +71,9 @@
             <option value="vercel">Vercel AI Gateway</option>
             <option value="typesafe">TypeSafe AI</option>
           </select>
+          <p class="disclosure">
+            Changing provider removes the saved key and returns to Manual mode.
+          </p>
           <label for="api-key">API key</label>
           <div class="key-row">
             <input
@@ -68,18 +82,32 @@
               autocomplete="off"
               spellcheck="false"
               placeholder="Paste Vercel AI Gateway key"
-            /><button type="submit" class="secondary">Save</button>
+            /><button id="save-key" type="submit" class="secondary">Save</button>
           </div>
           <p class="disclosure">
-            Stored on this device in extension storage, not encrypted or synced. Never sent to
-            websites.
+            Stored on this device in extension storage, not separately encrypted or synced. Never
+            sent to websites.
+          </p>
+          <label class="check-row consent"
+            ><input id="provider-consent" type="checkbox" /><span
+              >I allow <strong id="consent-provider">my selected provider</strong> to process up to
+              60 short element descriptions per analysis. Snippets may include personal data and
+              provider charges apply.</span
+            ></label
+          >
+          <p class="disclosure">
+            Manual sends only when you click Analyze. On page visit sends for new page templates
+            automatically. Gateway requests also go to TypeSafe. Uncheck permission to stop future
+            requests; already-sent data cannot be recalled.
+            <a href="/privacy.html" target="_blank" rel="noopener">Privacy details</a>
           </p>
           <button id="remove-key" type="button" class="text-button" hidden>Remove saved key</button>
         </form>
       </details>
     </main>
     <footer>
-      <span>Jev</span><span id="mode-hint">Manual analysis · Cached rules apply automatically</span>
+      <a href="/help.html" target="_blank" rel="noopener">Setup &amp; help</a
+      ><span id="mode-hint">Manual analysis · Cached rules apply automatically</span>
     </footer>
     <script type="module" src="./main.ts"></script>
   </body>

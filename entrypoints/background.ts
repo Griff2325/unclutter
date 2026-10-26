@@ -27,6 +27,8 @@ const uiMessage = z.discriminatedUnion("type", [
   }),
   z.object({ type: z.literal("provider"), provider: z.enum(providers) }),
   z.object({ type: z.literal("removeKey") }),
+  z.object({ type: z.literal("consent"), provider: z.enum(providers), allowed: z.boolean() }),
+  z.object({ type: z.literal("site"), tabId: z.number().int(), paused: z.boolean() }),
   z.object({ type: z.literal("global"), enabled: z.boolean() }),
   z.object({ type: z.literal("mode"), mode: z.enum(["manual", "auto"]) }),
   z.object({ type: z.literal("status"), tabId: z.number().int() }),
@@ -61,12 +63,25 @@ export default defineBackground(() => {
     .setAccessLevel?.({ accessLevel: "TRUSTED_CONTEXTS" })
     .catch(() => undefined);
   const settings = async (): Promise<Settings> => {
-    const data = await browser.storage.local.get(["enabled", "apiKey", "mode", "provider"]);
+    const data = await browser.storage.local.get([
+      "enabled",
+      "apiKey",
+      "mode",
+      "provider",
+      "consentedProviders",
+      "excludedOrigins",
+    ]);
+    const provider = resolveProvider(data.provider);
     return {
       enabled: data.enabled !== false,
       apiKey: typeof data.apiKey === "string" ? data.apiKey : "",
-      provider: resolveProvider(data.provider),
+      provider,
       mode: data.mode === "auto" ? "auto" : "manual",
+      consented:
+        Array.isArray(data.consentedProviders) && data.consentedProviders.includes(provider),
+      excludedOrigins: Array.isArray(data.excludedOrigins)
+        ? data.excludedOrigins.filter((origin): origin is string => typeof origin === "string")
+        : [],
     };
   };
   const profile = async (context: PageContext): Promise<Profile | null> => {
@@ -130,10 +145,19 @@ export default defineBackground(() => {
       const config = await settings();
       const before = await profile(snapshot.context);
       const attempt = (await browser.storage.local.get(attemptKey))[attemptKey];
-      if (automatic && !shouldAutoAnalyze(config, before, !!attempt)) return;
+      if (
+        automatic &&
+        (!shouldAutoAnalyze(config, before, !!attempt) ||
+          config.excludedOrigins.includes(snapshot.context.origin))
+      )
+        return;
       if (!config.apiKey)
         throw new Error(`Add your ${providerKeyLabel(config.provider)} API key first.`);
       if (!config.enabled) throw new Error("Enable Unclutter before analyzing.");
+      if (!config.consented)
+        throw new Error("Allow analysis with your selected provider under Connection first.");
+      if (config.excludedOrigins.includes(snapshot.context.origin))
+        throw new Error("This website is paused. Unpause it before analyzing.");
       tabJobs.add(tabId);
       tabErrors.delete(tabId);
       // Persist BEFORE making a paid request: a failed call or worker restart
@@ -142,7 +166,15 @@ export default defineBackground(() => {
       await badge(tabId);
       const rules = await evaluate(snapshot, config.apiKey, config.provider);
       const latestConfig = await settings();
-      if (!latestConfig.enabled || (automatic && latestConfig.mode !== "auto")) return;
+      if (
+        !latestConfig.enabled ||
+        !latestConfig.consented ||
+        latestConfig.provider !== config.provider ||
+        latestConfig.apiKey !== config.apiKey ||
+        latestConfig.excludedOrigins.includes(snapshot.context.origin) ||
+        (automatic && latestConfig.mode !== "auto")
+      )
+        throw new Error("Settings changed during analysis. Result discarded.");
       const current = snapshotSchema.parse(await send<Snapshot>(tabId, "snapshot"));
       if (current.url !== snapshot.url || current.context.key !== snapshot.context.key)
         throw new Error("Page changed during analysis. Result discarded.");
@@ -214,14 +246,15 @@ export default defineBackground(() => {
         const state: PageState = {
           context: message.context,
           profile: saved,
-          enabled: config.enabled,
+          enabled: config.enabled && !config.excludedOrigins.includes(message.context.origin),
           hiddenCount: message.hiddenCount,
         };
         await badge(sender.tab.id, state, tabErrors.has(sender.tab.id));
         return {
           profile: saved,
-          enabled: config.enabled,
-          autoEnabled: config.mode === "auto" && !!config.apiKey,
+          enabled: state.enabled,
+          autoEnabled:
+            state.enabled && config.mode === "auto" && !!config.apiKey && config.consented,
         };
       }
       if (sender.url !== browser.runtime.getURL("/popup.html"))
@@ -234,17 +267,44 @@ export default defineBackground(() => {
           hasKey: !!config.apiKey,
           provider: config.provider,
           mode: config.mode,
+          consented: config.consented,
         };
       }
       if (message.type === "saveKey") {
-        await browser.storage.local.set({ apiKey: message.key, provider: message.provider });
+        if ((await settings()).provider !== message.provider)
+          throw new Error("Provider changed. Reopen the popup and try again.");
+        await browser.storage.local.set({ apiKey: message.key, mode: "manual" });
+        await broadcast();
         return null;
       }
       if (message.type === "provider") {
-        await browser.storage.local.set({ provider: message.provider });
+        if ((await settings()).provider !== message.provider) {
+          await browser.storage.local.set({ provider: message.provider, mode: "manual" });
+          await browser.storage.local.remove("apiKey");
+          await broadcast();
+        }
+        return null;
+      }
+      if (message.type === "consent") {
+        if ((await settings()).provider !== message.provider)
+          throw new Error("Provider changed. Reopen the popup and try again.");
+        const data = await browser.storage.local.get("consentedProviders");
+        const consented = providers.filter(
+          (p) =>
+            p !== message.provider &&
+            Array.isArray(data.consentedProviders) &&
+            data.consentedProviders.includes(p),
+        );
+        if (message.allowed) consented.push(message.provider);
+        await browser.storage.local.set({
+          consentedProviders: consented,
+          mode: "manual",
+        });
+        await broadcast();
         return null;
       }
       if (message.type === "removeKey") {
+        await browser.storage.local.set({ mode: "manual" });
         await browser.storage.local.remove("apiKey");
         return null;
       }
@@ -254,6 +314,9 @@ export default defineBackground(() => {
         return null;
       }
       if (message.type === "mode") {
+        const config = await settings();
+        if (message.mode === "auto" && (!config.apiKey || !config.consented))
+          throw new Error("Save a key and allow provider analysis before enabling On page visit.");
         await browser.storage.local.set({ mode: message.mode });
         await broadcast();
         return null;
@@ -266,12 +329,22 @@ export default defineBackground(() => {
           | undefined;
         return {
           ...state,
+          sitePaused: (await settings()).excludedOrigins.includes(state.context.origin),
           busy: tabJobs.has(message.tabId) || jobs.has(state.context.key),
           error: tabErrors.get(message.tabId) ?? attempt?.error ?? null,
         };
       }
       if (message.type === "analyze") {
         await analyze(message.tabId);
+        return null;
+      }
+      if (message.type === "site") {
+        const state = await send<PageState>(message.tabId, "state");
+        const config = await settings();
+        const origins = config.excludedOrigins.filter((origin) => origin !== state.context.origin);
+        if (message.paused) origins.push(state.context.origin);
+        await browser.storage.local.set({ excludedOrigins: origins });
+        await broadcast();
         return null;
       }
       const snapshot = snapshotSchema.parse(await send<Snapshot>(message.tabId, "snapshot"));

@@ -1,0 +1,25 @@
+name: Beta bug report
+description: Report a reproducible Safari beta issue.
+body:
+  - type: markdown
+    attributes:
+      value: Do not include API keys, private URLs, account data or personal screenshots. See SECURITY.md for security reports.
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: Unclutter build, macOS, Safari and Mac architecture.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps and expected behavior
+      description: Include a public URL only if safe to share. Describe what happened and what you expected.
+    validations:
+      required: true
+  - type: textarea
+    id: recovery
+    attributes:
+      label: Recovery and errors
+      description: Did Pause or Pause this website restore the page? Include the error text without credentials or private data.

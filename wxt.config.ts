@@ -11,7 +11,8 @@ export default defineConfig({
     },
   },
   manifest: ({ browser }) => ({
-    name: "Unclutter",
+    name: "Unclutter for Safari",
+    version: "0.4.0",
     description: "Hide ads and promotions with reusable, AI-reviewed page-template rules.",
     permissions: ["storage", "activeTab"],
     host_permissions: ["http://*/*", "https://*/*"],

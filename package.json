@@ -1,6 +1,6 @@
 {
   "name": "unclutter",
-  "version": "0.3.0",
+  "version": "0.4.0-beta.1",
   "private": true,
   "license": "MIT",
   "repository": {
@@ -17,11 +17,12 @@
     "lint": "oxlint --deny-warnings .",
     "format": "oxfmt .",
     "format:check": "oxfmt --check .",
-    "test": "tsx --test tests/*.test.ts",
+    "test": "node --import tsx --test tests/*.test.ts scripts/*.test.mjs",
     "check": "bun run typecheck && bun run lint && bun run format:check && bun run test",
     "build:safari": "wxt build -b safari --mv3",
     "zip:safari": "wxt zip -b safari --mv3",
-    "safari:app": "bun run build:safari && node scripts/package-safari.mjs"
+    "safari:app": "bun run build:safari && node scripts/package-safari.mjs",
+    "safari:release": "bun run build:safari && node scripts/release-safari.mjs"
   },
   "dependencies": {
     "zod": "^4.3.6"

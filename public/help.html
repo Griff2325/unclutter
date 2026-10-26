@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="/info.css" />
+    <title>Set up Safari cleanup · Unclutter for Safari</title>
+  </head>
+  <body>
+    <header>
+      <nav>
+        <a href="/help.html">Setup &amp; help</a><a href="/privacy.html">Privacy</a
+        ><a href="/demo.html">Local demo</a>
+      </nav>
+      <h1>Set up Safari cleanup</h1>
+      <p class="muted">Unclutter for Safari · Mac beta · Bring your own API key</p>
+    </header>
+    <main>
+      <p class="note">
+        This beta hides page elements. It does not block ad network requests, reject cookies, or
+        bypass paywalls.
+      </p>
+      <ol>
+        <li>
+          <strong>Enable the extension.</strong> Open Safari → Settings → Extensions and select
+          Unclutter. Public beta downloads must be notarized; you should not need to enable unsigned
+          extensions.
+        </li>
+        <li>
+          <strong>Allow a website.</strong> Open a normal HTTP or HTTPS website and use Safari’s
+          extension toolbar controls to allow access to that website. Begin with one public site;
+          avoid sensitive accounts and private pages.
+        </li>
+        <li>
+          <strong>Add your own key.</strong> In the popup’s Connection section, choose TypeSafe AI
+          or Vercel AI Gateway, paste the matching API key, and Save. Get a key from the
+          <a href="https://console.typesafe.ai/settings/keys" rel="noopener">TypeSafe console</a> or
+          <a href="https://vercel.com/ai-gateway" rel="noopener">Vercel AI Gateway</a>. You pay that
+          provider directly. Changing provider removes the previous key.
+        </li>
+        <li>
+          <strong>Review permission and cost.</strong> Read
+          <a href="/privacy.html">what is sent</a> and check the provider-permission box. Saving a
+          key or changing permission returns to Manual mode without making a test request.
+        </li>
+        <li>
+          <strong>Analyze once.</strong> Click Analyze page. It sends up to 60 descriptions to your
+          provider and can incur charges. Saved rules apply on later matching pages without another
+          model request. You can try the <a href="/demo.html">local sample demo</a> without a key or
+          network request.
+        </li>
+      </ol>
+      <h2>Stay in control</h2>
+      <p>
+        Manual is the default. On page visit analyzes new page templates automatically after you opt
+        in; charges can accumulate across sites. Use your provider’s spending controls. Pause this
+        website stops both cleanup and analysis on that exact website origin. Pause / Resume affects
+        the current page template; uncheck an individual rule to keep that element visible.
+      </p>
+      <h2>When something looks wrong</h2>
+      <p>
+        Pause cleanup first to restore the page. Refresh after installing an update. Safari’s Start
+        Page, PDFs, browser settings, extension stores and file URLs are unsupported; open a normal
+        website instead. A saved key is not a successful connection test: Analyze page verifies
+        access and may be billed.
+      </p>
+      <p>
+        If ads remain after an update, cached rules may need Re-analyze once. Existing rules remain
+        if the provider fails. Some iframe content, shadow DOM, changed selectors, or complex scroll
+        locks may still be missed.
+      </p>
+      <h2>Updates and support</h2>
+      <p>
+        Replace the app in the same installed location and keep only one copy. A change from
+        unsigned to certificate-signed builds may require one-time setup again. Use the project’s
+        GitHub releases for future beta updates; this beta does not install updates automatically.
+      </p>
+      <p>
+        When reporting a bug, include the beta version, Safari/macOS versions, a public site if
+        possible, what happened, and whether Pause restored it. Never post an API key, account page,
+        private URL, or unredacted personal data.
+      </p>
+    </main>
+    <footer>
+      Independent Safari adaptation of
+      <a href="https://github.com/kitze/unclutter" rel="noopener">Kitze’s Unclutter</a>. MIT
+      licensed; working beta name.
+      <a href="https://github.com/Griff2325/unclutter/issues" rel="noopener">Report a problem</a>
+      without including keys or private browsing data.
+    </footer>
+  </body>
+</html>
