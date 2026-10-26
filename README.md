@@ -263,6 +263,8 @@ SAFARI_SIGNING_IDENTITY="YOUR_CERTIFICATE_FINGERPRINT" \
 SAFARI_DEVELOPMENT_TEAM="YOURTEAMID" bun run safari:app
 ```
 
+Switching from an ad-hoc build to a certificate-signed build changes Safari’s extension identity. Safari may give that identity fresh settings, website permissions, and templates; re-enter your provider key and configure it once. Subsequent builds with the same developer team retain the signed identity.
+
 This signs both the containing app and extension, verifies their team, and shows the appropriate installation guidance. Replace the app at the same installed path, open it once, enable Unclutter in Safari Settings → Extensions, and verify it works with **Allow unsigned extensions** off and after restarting Safari. Certificate signing alone is not notarization; this is a local development build. Keep using the signing variables for subsequent builds, because omitting them deliberately produces an ad-hoc test build again. A certificate may expire or be revoked, requiring a new signed build.
 
 For distribution outside your own Mac, use the App Store or an appropriately Developer ID signed and notarized macOS app. Follow Apple’s [packaging](https://developer.apple.com/documentation/safariservices/packaging-a-web-extension-for-safari), [running](https://developer.apple.com/documentation/safariservices/running-your-safari-web-extension), and [distribution](https://developer.apple.com/documentation/safariservices/distributing-your-safari-web-extension) guides. Regeneration overwrites Xcode-only edits; use the build variables above instead of editing generated signing settings.
