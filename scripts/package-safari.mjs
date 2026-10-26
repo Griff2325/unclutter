@@ -9,6 +9,13 @@ const root = fileURLToPath(new URL("../", import.meta.url));
 const extension = join(root, ".output/safari-mv3");
 const project = join(root, ".output/safari-xcode/Unclutter");
 const products = join(root, ".output/safari-app");
+const signingIdentity = process.env.SAFARI_SIGNING_IDENTITY?.trim() || "-";
+const team = process.env.SAFARI_DEVELOPMENT_TEAM?.trim() || "";
+const signed = signingIdentity !== "-";
+assert.ok(
+  signed ? /^[A-Z0-9]{10}$/.test(team) : !team,
+  "Set both SAFARI_SIGNING_IDENTITY and a 10-character SAFARI_DEVELOPMENT_TEAM, or neither.",
+);
 const manifest = JSON.parse(readFileSync(join(extension, "manifest.json"), "utf8"));
 assert.equal(manifest.manifest_version, 3, "Run bun run build:safari first.");
 assert.ok(manifest.background?.service_worker, "Safari requires the background worker.");
@@ -52,7 +59,10 @@ writeFileSync(
   main,
   html.replace('width="128" height="128"', 'width="48" height="48"').replace(
     "</body>",
-    `<p>Local development build: in Safari Settings → Advanced, enable “Show features for web developers”.
+    signed
+      ? `<p>Signed development build. Enable Unclutter in Safari Settings → Extensions and allow website access. Refresh existing website tabs.</p>
+</body>`
+      : `<p>Local development build: in Safari Settings → Advanced, enable “Show features for web developers”.
 Then enable Safari Settings → Developer → Allow unsigned extensions. Enable Unclutter in Safari Settings → Extensions and allow website access.</p>
 <p>Safari resets the unsigned-extension setting when it quits. Refresh website tabs after enabling Unclutter.</p>
 </body>`,
@@ -80,8 +90,8 @@ run("xcodebuild", [
   `CONFIGURATION_BUILD_DIR=${products}`,
   "MACOSX_DEPLOYMENT_TARGET=13.0",
   "CODE_SIGN_STYLE=Manual",
-  "CODE_SIGN_IDENTITY=-",
-  "DEVELOPMENT_TEAM=",
+  `CODE_SIGN_IDENTITY=${signingIdentity}`,
+  `DEVELOPMENT_TEAM=${team}`,
   "ENABLE_OUTGOING_NETWORK_CONNECTIONS=YES",
   "build",
 ]);
@@ -89,6 +99,18 @@ const app = join(products, "Unclutter.app");
 const appex = join(app, "Contents/PlugIns/Unclutter Extension.appex");
 assert.ok(existsSync(appex), "Build did not produce the Safari extension app.");
 run("codesign", ["--verify", "--deep", "--strict", app]);
+if (signed) {
+  for (const bundle of [app, appex]) {
+    const signature = spawnSync("codesign", ["-dv", bundle], { encoding: "utf8" });
+    assert.equal(signature.status, 0, "Cannot inspect signing identity.");
+    assert.ok(
+      signature.stderr.split("\n").includes(`TeamIdentifier=${team}`),
+      "The app and extension must both be signed by the requested developer team.",
+    );
+    assert.ok(!signature.stderr.includes("Signature=adhoc"), "Expected certificate signing.");
+  }
+}
+
 const entitlements = spawnSync("codesign", ["-d", "--entitlements", "-", "--xml", appex], {
   encoding: "utf8",
 });
@@ -99,5 +121,5 @@ assert.match(
   "Extension requires outgoing network access.",
 );
 console.log(
-  `\nBuilt ${app}\nOpen the app for Safari setup instructions. This is a locally signed development build, not a notarized release.`,
+  `\nBuilt ${app}\n${signed ? "Signed with your developer identity." : "Ad-hoc signed: Safari's unsigned-extension setting resets when it quits."} Open the app for Safari setup instructions. This is not a notarized release.`,
 );

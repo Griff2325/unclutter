@@ -244,19 +244,28 @@ bun run safari:app
 ```
 
 1. Move `.output/safari-app/Unclutter.app` to a stable location such as `/Applications`, then open it once so Safari discovers its extension. Keep only one installed app copy: multiple copies can create duplicate Safari entries with separate website permissions.
-2. This is a locally signed development build. In **Safari → Settings → Advanced**, enable **Show features for web developers**. Open **Safari → Settings → Developer** and enable **Allow unsigned extensions**. Safari resets this setting whenever it quits; enable it again after restarting Safari.
+2. For the default **ad-hoc test build**, enable **Show features for web developers** in **Safari → Settings → Advanced**, then **Allow unsigned extensions** in **Safari → Settings → Developer**. Safari resets this setting whenever it quits. For a **certificate-signed build** using the variables below, skip this step and leave **Allow unsigned extensions** off.
 3. In **Safari → Settings → Extensions**, enable **Unclutter** and allow it on the websites you want to clean. Use **Always Allow on Every Website** only if you want saved rules and automatic mode to work across all sites. Safari’s per-site access controls still apply.
 4. Refresh existing website tabs, open Unclutter’s toolbar popup, and configure a provider and API key under **Connection**. Manual mode is the default; analysis requires your own provider credits. Saved rules work without further requests.
 
 Rebuild with the same command, move the new app into the same installed location to replace the previous app, reopen it, and refresh website tabs. Keep the same installed location and app bundle identifier to retain local extension settings. Safari badges show status text; Safari controls their color.
 
-If Safari reports **Page unavailable** after you grant website access and refresh the tab, check that only one Unclutter app copy is installed. Quit and reopen Safari, re-enable **Allow unsigned extensions**, reopen the kept app, and refresh the website. If the app is missing from Extensions, refresh its registration with `pluginkit -a "/path/to/Unclutter.app/Contents/PlugIns/Unclutter Extension.appex"`, then reopen Safari Settings.
+If Safari reports **Page unavailable** after you grant website access and refresh the tab, check that only one Unclutter app copy is installed. Quit and reopen Safari, reopen the kept app, and refresh the website. Only ad-hoc test builds need **Allow unsigned extensions** re-enabled after the restart. If the app is missing from Extensions, refresh its registration with `pluginkit -a "/path/to/Unclutter.app/Contents/PlugIns/Unclutter Extension.appex"`, then reopen Safari Settings.
 
 Live Safari verification covered popup/page communication, applying a disposable cached banner rule, restoring the banner with a paused template, and removing the test rule. The useful article remained visible. Paid provider requests were not part of this smoke test.
 
 `bun run build:safari` produces only `.output/safari-mv3/`; `bun run zip:safari` produces its web-extension ZIP. Neither is directly installable by double-clicking or dragging into Safari. `bun run safari:app` regenerates the Xcode project under `.output/safari-xcode/` and builds `.output/safari-app/Unclutter.app`; generated files are ignored by Git. The packager verifies the app signature and extension’s outgoing-network entitlement. No API key or browser security setting is changed during the build.
 
-For a trusted permanent install without the unsigned-extension setting, configure both generated Xcode targets with your Apple Developer team and distribution signing, then distribute through the App Store or an appropriately signed and notarized macOS app. The local build is ad-hoc signed and is not a notarized release. Follow Apple’s [packaging](https://developer.apple.com/documentation/safariservices/packaging-a-web-extension-for-safari) and [running](https://developer.apple.com/documentation/safariservices/running-your-safari-web-extension) guides. Regeneration overwrites Xcode-only edits; keep release-signing changes outside generated build output.
+For personal use across Safari restarts, build with an existing valid Apple Development signing identity and its team ID. Find the identity with `security find-identity -v -p codesigning`; use its certificate fingerprint and the team ID shown in Xcode:
+
+```sh
+SAFARI_SIGNING_IDENTITY="YOUR_CERTIFICATE_FINGERPRINT" \
+SAFARI_DEVELOPMENT_TEAM="YOURTEAMID" bun run safari:app
+```
+
+This signs both the containing app and extension, verifies their team, and shows the appropriate installation guidance. Replace the app at the same installed path, open it once, enable Unclutter in Safari Settings → Extensions, and verify it works with **Allow unsigned extensions** off and after restarting Safari. Certificate signing alone is not notarization; this is a local development build. Keep using the signing variables for subsequent builds, because omitting them deliberately produces an ad-hoc test build again. A certificate may expire or be revoked, requiring a new signed build.
+
+For distribution outside your own Mac, use the App Store or an appropriately Developer ID signed and notarized macOS app. Follow Apple’s [packaging](https://developer.apple.com/documentation/safariservices/packaging-a-web-extension-for-safari), [running](https://developer.apple.com/documentation/safariservices/running-your-safari-web-extension), and [distribution](https://developer.apple.com/documentation/safariservices/distributing-your-safari-web-extension) guides. Regeneration overwrites Xcode-only edits; use the build variables above instead of editing generated signing settings.
 
 Bring your own [Vercel AI Gateway](https://vercel.com/ai-gateway) key or [TypeSafe AI key](https://console.typesafe.ai/settings/keys) (the same kind used as `JEV_KEY` / `TYPESAFE_API_KEY`). Configure it in the extension popup, not in source code or build-time environment variables. No key or shared account is bundled.
 
