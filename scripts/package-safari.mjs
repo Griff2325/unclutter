@@ -3,6 +3,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { checkReleaseSignature, checkReleaseEntitlements } from "./safari-release-checks.mjs";
 
 assert.equal(process.platform, "darwin", "Safari app packaging requires macOS and full Xcode.");
 const root = fileURLToPath(new URL("../", import.meta.url));
@@ -14,7 +15,12 @@ const release = process.env.SAFARI_RELEASE === "1";
 const signingIdentity = process.env.SAFARI_SIGNING_IDENTITY?.trim() || "-";
 const team = process.env.SAFARI_DEVELOPMENT_TEAM?.trim() || "";
 const signed = signingIdentity !== "-";
-if (release) assert.match(signingIdentity, /^[A-Fa-f0-9]{40}$/, "Release requires a Developer ID Application certificate fingerprint.");
+if (release)
+  assert.match(
+    signingIdentity,
+    /^[A-Fa-f0-9]{40}$/,
+    "Release requires a Developer ID Application certificate fingerprint.",
+  );
 assert.ok(
   signed ? /^[A-Z0-9]{10}$/.test(team) : !team,
   "Set both SAFARI_SIGNING_IDENTITY and a 10-character SAFARI_DEVELOPMENT_TEAM, or neither.",
@@ -98,7 +104,15 @@ run("xcodebuild", [
   `CODE_SIGN_IDENTITY=${signingIdentity}`,
   `DEVELOPMENT_TEAM=${team}`,
   "ENABLE_OUTGOING_NETWORK_CONNECTIONS=YES",
-  ...(release ? ["ARCHS=arm64 x86_64", "ONLY_ACTIVE_ARCH=NO", "ENABLE_HARDENED_RUNTIME=YES", `MARKETING_VERSION=${manifest.version}`] : []),
+  `MARKETING_VERSION=${manifest.version}`,
+  ...(release
+    ? [
+        "ARCHS=arm64 x86_64",
+        "ONLY_ACTIVE_ARCH=NO",
+        "ENABLE_HARDENED_RUNTIME=YES",
+        "OTHER_CODE_SIGN_FLAGS=--timestamp",
+      ]
+    : []),
   "build",
 ]);
 const app = join(products, "Unclutter.app");
@@ -114,7 +128,16 @@ if (signed) {
       "The app and extension must both be signed by the requested developer team.",
     );
     assert.ok(!signature.stderr.includes("Signature=adhoc"), "Expected certificate signing.");
-    if (release) assert.match(signature.stderr, /^Authority=Developer ID Application:/m, "Release requires a Developer ID Application signature.");
+    if (release) {
+      checkReleaseSignature(signature.stderr);
+      const bundleEntitlements = spawnSync(
+        "codesign",
+        ["-d", "--entitlements", "-", "--xml", bundle],
+        { encoding: "utf8" },
+      );
+      assert.equal(bundleEntitlements.status, 0, "Cannot inspect signing entitlements.");
+      checkReleaseEntitlements(bundleEntitlements.stdout);
+    }
   }
 }
 
@@ -129,11 +152,23 @@ assert.match(
 );
 if (release) {
   for (const bundle of [app, appex]) {
-    const executable = spawnSync("plutil", ["-extract", "CFBundleExecutable", "raw", "-o", "-", join(bundle, "Contents/Info.plist")], { encoding: "utf8" });
+    const executable = spawnSync(
+      "plutil",
+      ["-extract", "CFBundleExecutable", "raw", "-o", "-", join(bundle, "Contents/Info.plist")],
+      { encoding: "utf8" },
+    );
     assert.equal(executable.status, 0, "Cannot inspect bundle executable.");
-    const architectures = spawnSync("lipo", ["-archs", join(bundle, "Contents/MacOS", executable.stdout.trim())], { encoding: "utf8" });
+    const architectures = spawnSync(
+      "lipo",
+      ["-archs", join(bundle, "Contents/MacOS", executable.stdout.trim())],
+      { encoding: "utf8" },
+    );
     assert.equal(architectures.status, 0, "Cannot inspect binary architectures.");
-    assert.deepEqual(new Set(architectures.stdout.trim().split(/\s+/)), new Set(["arm64", "x86_64"]), "Release must be universal.");
+    assert.deepEqual(
+      new Set(architectures.stdout.trim().split(/\s+/)),
+      new Set(["arm64", "x86_64"]),
+      "Release must be universal.",
+    );
   }
 }
 console.log(
