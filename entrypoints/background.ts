@@ -108,11 +108,15 @@ export default defineBackground(() => {
           : saved
             ? `Unclutter: saved template · ${state.hiddenCount} hidden`
             : "Unclutter: not analyzed";
-    await Promise.all([
-      action.setBadgeText({ tabId, text }),
-      action.setBadgeBackgroundColor({ tabId, color }),
-      action.setTitle({ tabId, title }),
-    ]);
+    try {
+      await Promise.all([
+        action.setBadgeText({ tabId, text }),
+        action.setBadgeBackgroundColor({ tabId, color }),
+        action.setTitle({ tabId, title }),
+      ]);
+    } catch {
+      // Optional toolbar decoration must not block cleanup on mobile Safari.
+    }
   };
   const send = async <T>(tabId: number, type: string): Promise<T> => {
     try {

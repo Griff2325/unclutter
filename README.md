@@ -1,10 +1,10 @@
 # Unclutter for Safari
 
-A Mac-only beta project that hides page clutter using reusable, AI-reviewed rules. You supply your own **TypeSafe AI** or **Vercel AI Gateway** key and pay that provider directly. There is no hosted backend or subscription from this project.
+A Safari decluttering project for Mac, with an iPhone development build. It hides page clutter using reusable, AI-reviewed rules. You supply your own **TypeSafe AI** or **Vercel AI Gateway** key and pay that provider directly. There is no hosted backend or subscription from this project.
 
 This is an independent Safari adaptation of [Kitze’s Unclutter](https://github.com/kitze/unclutter), under the [MIT license](LICENSE). The display name is provisional; permission/name clearance or a distinct name is required before public distribution. This fork is not affiliated with the existing Unclutter desktop utility.
 
-**Status: beta preparation, not a published public beta.** Source checks and local Safari development builds are available. Public downloads must pass Developer ID signing, notarization, clean-Mac installation and the [beta release gates](docs/BETA.md). Do not distribute development archives as public release builds.
+**Status: beta preparation, not a published public beta.** Source checks and local Safari development builds are available. Mac public downloads must pass Developer ID signing, notarization, clean-Mac installation and the [beta release gates](docs/BETA.md). The iPhone build is a separate development target, not a TestFlight or App Store release. Do not distribute development archives as public release builds.
 
 ## What it does
 
@@ -51,9 +51,20 @@ That build can run with unsigned extensions off. Replace the existing app at the
 
 For public release packaging, see [RELEASING](docs/RELEASING.md). `bun run safari:release` requires Developer ID credentials and an existing notarytool profile, submits to Apple, and emits a versioned, stapled ZIP/checksum only after verification. Do not run submission or publish until the release gates are cleared.
 
+## iPhone development build
+
+Use [the iPhone setup guide](docs/IOS.md) to build an iOS containing app with the same Safari extension and BYOK controls:
+
+```sh
+bun run ios:app     # unsigned iPhone simulator build
+bun run ios:device  # unsigned physical-device compile check; not installable
+```
+
+For your own iPhone, the app and extension need Apple Development signing and provisioning for that device. Apple requires Developer Program membership for Safari extension device tests. After installation, enable Unclutter in Settings → Apps → Safari → Extensions, allow access to a website, and configure your key and consent in Safari’s extension popup. Mac settings, keys and cached rules do not sync to the phone. See the guide for the explicit signed-build command and recorded test limits. Sharing an iPhone beta later requires a separate distribution path such as TestFlight; the Mac ZIP is not an iPhone installer.
+
 ## How the fork differs
 
-Safari macOS app packaging and signing workflows; direct TypeSafe provider support; safer candidate prioritization and active video-ad shell hiding; explicit provider consent and per-site pause; safer provider switching; bundled setup/privacy/demo; automated regression and release-validation checks. The upstream page-template architecture and original work remain credited to Kitze.
+Safari macOS/iOS app packaging and signing workflows; direct TypeSafe provider support; safer candidate prioritization and active video-ad shell hiding; explicit provider consent and per-site pause; safer provider switching; bundled setup/privacy/demo; automated regression and release-validation checks. The upstream page-template architecture and original work remain credited to Kitze.
 
 `lib/page-context.ts` groups exact origins, page kinds, normalized route families and main-shell markers. `lib/dom.ts` collects candidates and applies reversible rules. `lib/jev.ts` constructs typed requests and validates answers. The background owns keys, consent, cache and paid requests; content scripts receive cleanup state, never credentials. The popup handles permissions and controls. No telemetry or server is added.
 
@@ -65,4 +76,4 @@ Optional live provider smoke: set **one** provider family in your local environm
 
 Please report reproducible bugs through [Issues](https://github.com/Griff2325/unclutter/issues). Include versions, public site if applicable, expected behavior and whether Pause restored it. Omit private URLs, keys and personal screenshots. See [security reporting](SECURITY.md). There are no verified user-adoption or classification-accuracy claims yet; the [test matrix](docs/TESTING.md) records the remaining work.
 
-Upstream Chromium/Firefox development targets remain in source for compatibility; this beta’s distribution scope is macOS Safari only.
+Upstream Chromium/Firefox development targets remain in source for compatibility. Public-beta preparation remains scoped to macOS; iPhone support is a separate development preview until its device and distribution checks are complete.

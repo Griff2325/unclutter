@@ -260,6 +260,29 @@ for (const [label, change] of [
   });
 }
 
+for (const failure of ["missing", "rejected"] as const) {
+  test(`${failure} toolbar badge API does not block cleanup or analysis`, async () => {
+    const original = { ...action };
+    try {
+      if (failure === "missing") Reflect.deleteProperty(action, "setBadgeText");
+      else
+        action.setBadgeText = async () => {
+          throw new Error("Unsupported action API");
+        };
+      const sync = await new Promise<Reply<unknown>>((resolve) =>
+        listener({ type: "sync", context, hiddenCount: 0 }, pageSender, resolve),
+      );
+      assert.equal(sync.ok, true);
+      data.consentedProviders = ["typesafe"];
+      assert.equal((await ui({ type: "analyze", tabId: 1 })).ok, true);
+      assert.ok(data[profileKey]);
+      assert.equal(calls.length, 1);
+    } finally {
+      Object.assign(action, original);
+    }
+  });
+}
+
 test("page and foreign senders cannot read settings or grant provider consent", async () => {
   const page = await ui({ type: "settings" }, pageSender);
   const foreign = await ui(

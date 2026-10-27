@@ -19,3 +19,7 @@ Obtain the key owner’s explicit permission and a spending limit before agent-r
 ## Independent tester feedback — pending
 
 Aim for five people outside the development session. Ask each to install using only the README, try the local demo, configure their own provider, clean a public page, recover from an incorrect removal and restart Safari. Record assistance needed and issues before deciding whether to publish.
+
+## iPhone development preview
+
+Use a dedicated iPhone simulator and a provisioned physical iPhone. Confirm the containing app instructions, Safari enablement and per-site permission, popup sizing and touch targets, keyboard/key paste, manual consent, site pause, cached cleanup/restore, background suspension, Safari restart and upgrades. Keys and caches are separate from Mac and do not sync. Start without a real key; use the local demo for an unbilled reversible-cleanup check. Any agent-run real provider test still needs explicit data/provider permission and a budget. Simulator or unsigned device compilation alone does not establish real-iPhone behavior. See [IOS](IOS.md) for actual evidence and remaining checks.

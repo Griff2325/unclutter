@@ -4,7 +4,7 @@ Effective October 26, 2026. This independent client-only fork has no project-ope
 
 ## Local storage
 
-Safari extension storage holds the selected provider, API key, permission state, paused exact website origins, cached page-template rules and attempt/error metadata. It is local, not synced. The extension does not separately encrypt the key or store it in Keychain. Protect access to your Mac; revoke compromised credentials through the provider.
+Safari extension storage holds the selected provider, API key, permission state, paused exact website origins, cached page-template rules and attempt/error metadata. It is local, not synced between Mac and iPhone. The extension does not separately encrypt the key or store it in Keychain. Protect access to your device; revoke compromised credentials through the provider.
 
 ## Requests and costs
 

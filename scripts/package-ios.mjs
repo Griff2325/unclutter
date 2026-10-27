@@ -12,10 +12,9 @@ const project = join(output, "ios-xcode/Unclutter");
 const device = process.env.IOS_DEVICE_BUILD === "1";
 const signed = process.env.IOS_SIGN === "1";
 const team = process.env.SAFARI_DEVELOPMENT_TEAM?.trim() || "";
-const identity = process.env.SAFARI_SIGNING_IDENTITY?.trim() || "";
 assert.ok(
-  !signed || (device && /^[A-Z0-9]{10}$/.test(team) && /^[A-Fa-f0-9]{40}$/.test(identity)),
-  "IOS_SIGN=1 requires IOS_DEVICE_BUILD=1, SAFARI_DEVELOPMENT_TEAM and a certificate fingerprint.",
+  !signed || (device && /^[A-Z0-9]{10}$/.test(team)),
+  "IOS_SIGN=1 requires IOS_DEVICE_BUILD=1 and a 10-character SAFARI_DEVELOPMENT_TEAM.",
 );
 const products = join(output, device ? "ios-device-app" : "ios-simulator-app");
 // Resolve existing ancestors so an output symlink cannot overwrite the Mac project.
@@ -25,6 +24,11 @@ function canonical(path) {
     : join(canonical(resolve(path, "..")), path.split("/").at(-1));
 }
 for (const path of [project, products, join(output, "ios-derived-data")]) {
+  assert.ok(
+    canonical(path) !== canonical(extension) &&
+      !canonical(path).startsWith(`${canonical(extension)}/`),
+    "iOS outputs must not overlap the compiled extension input.",
+  );
   assert.ok(
     !canonical(path)
       .split("/")
@@ -113,7 +117,11 @@ run("xcodebuild", [
   `MARKETING_VERSION=${manifest.version}`,
   "CURRENT_PROJECT_VERSION=1",
   ...(signed
-    ? ["CODE_SIGN_STYLE=Automatic", `DEVELOPMENT_TEAM=${team}`, `CODE_SIGN_IDENTITY=${identity}`]
+    ? [
+        "CODE_SIGN_STYLE=Automatic",
+        `DEVELOPMENT_TEAM=${team}`,
+        "CODE_SIGN_IDENTITY=Apple Development",
+      ]
     : ["CODE_SIGNING_ALLOWED=NO"]),
   "build",
 ]);
@@ -146,7 +154,15 @@ for (const resource of resources)
     readFileSync(join(extension, resource), "utf8"),
     `Packaged resource mismatch: ${resource}`,
   );
-if (signed) run("codesign", ["--verify", "--deep", "--strict", app]);
+if (signed) {
+  run("codesign", ["--verify", "--deep", "--strict", app]);
+  for (const bundle of [app, appex]) {
+    const signature = spawnSync("codesign", ["-dvvv", bundle], { encoding: "utf8" });
+    assert.equal(signature.status, 0, "Cannot inspect iOS signature.");
+    assert.ok(signature.stderr.split("\n").includes(`TeamIdentifier=${team}`));
+    assert.match(signature.stderr, /^Authority=Apple Development:/m);
+  }
+}
 console.log(
   `\nBuilt ${app}\n${signed ? "Signed device build; installation is a separate step." : device ? "Unsigned physical-device compile only; cannot install on an iPhone." : "Unsigned simulator build."} No app was installed, launched or uploaded.`,
 );

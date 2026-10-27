@@ -22,7 +22,9 @@
     "build:safari": "wxt build -b safari --mv3",
     "zip:safari": "wxt zip -b safari --mv3",
     "safari:app": "bun run build:safari && node scripts/package-safari.mjs",
-    "safari:release": "bun run build:safari && node scripts/release-safari.mjs"
+    "safari:release": "bun run build:safari && node scripts/release-safari.mjs",
+    "ios:app": "bun run build:safari && node scripts/package-ios.mjs",
+    "ios:device": "bun run build:safari && IOS_DEVICE_BUILD=1 node scripts/package-ios.mjs"
   },
   "dependencies": {
     "zod": "^4.3.6"

@@ -13,7 +13,7 @@
         ><a href="/demo.html">Local demo</a>
       </nav>
       <h1>Set up Safari cleanup</h1>
-      <p class="muted">Unclutter for Safari · Mac beta · Bring your own API key</p>
+      <p class="muted">Unclutter for Safari · Bring your own API key</p>
     </header>
     <main>
       <p class="note">
@@ -23,8 +23,10 @@
       <ol>
         <li>
           <strong>Enable the extension.</strong> Open Safari → Settings → Extensions and select
-          Unclutter. Public beta downloads must be notarized; you should not need to enable unsigned
-          extensions.
+          Unclutter. On iPhone, open Settings → Apps → Safari → Extensions, or Safari’s Page Menu →
+          Manage Extensions, and enable Unclutter. An iPhone development build must be installed
+          through Xcode; an iPhone ZIP cannot be installed like a Mac app. Mac public downloads must
+          be notarized; they should not require unsigned extensions.
         </li>
         <li>
           <strong>Allow a website.</strong> Open a normal HTTP or HTTPS website and use Safari’s
@@ -73,12 +75,14 @@
       <p>
         Replace the app in the same installed location and keep only one copy. A change from
         unsigned to certificate-signed builds may require one-time setup again. Use the project’s
-        GitHub releases for future beta updates; this beta does not install updates automatically.
+        GitHub releases for future Mac beta updates. iPhone development updates come through Xcode;
+        a future iPhone beta would use TestFlight. This project does not install updates
+        automatically.
       </p>
       <p>
-        When reporting a bug, include the beta version, Safari/macOS versions, a public site if
-        possible, what happened, and whether Pause restored it. Never post an API key, account page,
-        private URL, or unredacted personal data.
+        When reporting a bug, include the beta version, Safari and macOS/iOS versions, a public site
+        if possible, what happened, and whether Pause restored it. Never post an API key, account
+        page, private URL, or unredacted personal data.
       </p>
     </main>
     <footer>

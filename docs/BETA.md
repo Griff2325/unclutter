@@ -1,6 +1,6 @@
 # Public-beta queue
 
-Scope: Mac Safari only, users supply their own provider key, no hosted backend, subscription, iPhone release or App Store submission in this batch. Internal bundle IDs and signing team stay stable. Working name: Unclutter for Safari; not legally cleared.
+Public-beta scope: Mac Safari, users supply their own provider key, no hosted backend, subscription or App Store submission in this batch. A separate [iPhone development preview](IOS.md) was requested October 27; it does not constitute an iPhone public release. Internal bundle IDs and signing team stay stable. Working name: Unclutter for Safari; not legally cleared.
 
 ## Ordered work
 
@@ -14,6 +14,8 @@ Scope: Mac Safari only, users supply their own provider key, no hosted backend, 
 8. [ ] Verify provider-account retention/terms for intended use and finalize privacy wording. GitHub private vulnerability reporting is enabled; review the reporting instructions before launch.
 9. [ ] Run the clean-Mac/OS/Intel test matrix and explicitly budgeted live provider cases. Gather feedback from at least five outside testers who install without live coaching. Record all results; do not present planned tests as completed.
 10. [ ] Approve Apple submission, notarize/staple/verify the final artifacts, then approve publication. No binary, release tag or public beta announcement has been published by this preparation work.
+
+11. [ ] Verify the separately requested iPhone development build in Safari and on the user’s provisioned phone; record simulator/device results in [IOS](IOS.md). Do not treat this as completion of the Mac public-release gates.
 
 ## Evidence
 

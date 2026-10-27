@@ -15,7 +15,7 @@
 }
 body {
   margin: 0;
-  width: 380px;
+  width: min(380px, 100vw);
   min-height: 240px;
 }
 header {
@@ -439,5 +439,87 @@ a:focus-visible {
   *::before,
   *::after {
     transition: none !important;
+  }
+}
+
+@media (pointer: coarse) {
+  :root {
+    font-size: 15px;
+  }
+  button,
+  select,
+  summary,
+  .text-button {
+    min-height: 44px;
+  }
+  select,
+  input[type="password"] {
+    font-size: 16px;
+    min-height: 44px;
+  }
+  .mode-row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .mode-row select {
+    max-width: 100%;
+  }
+  .switch {
+    width: 44px;
+    height: 44px;
+  }
+  .switch span {
+    position: absolute;
+    left: 5px;
+    top: 12px;
+  }
+  .check-row {
+    font-size: 13px;
+    min-height: 44px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .check-row input,
+  .rule input {
+    width: 20px;
+    height: 20px;
+  }
+  .check-row .muted {
+    margin-left: 28px;
+  }
+  .consent {
+    flex-wrap: nowrap;
+    align-items: flex-start;
+  }
+  .disclosure,
+  .setup-note,
+  #template,
+  #error,
+  #notice {
+    font-size: 12px;
+  }
+  .rule {
+    padding: 12px 0;
+  }
+  .rule strong {
+    font-size: 13px;
+  }
+  .rule code {
+    font-size: 12px;
+  }
+  .text-button {
+    display: inline-flex;
+    align-items: center;
+  }
+  footer {
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+  }
+  footer a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
   }
 }
